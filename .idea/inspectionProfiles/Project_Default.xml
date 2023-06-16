@@ -1,0 +1,48 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="123" name="Python" />
+      </Languages>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E722" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="kbapp.models.CustomerEvent.objects" />
+          <option value="bfdlcore.models.bfdl_mf_authtoken.objects" />
+          <option value="value_research._models.staging_models.StgVRFundPlan.DoesNotExist" />
+          <option value="value_research._models.staging_models.StgVRFundPlan.objects" />
+          <option value="value_research._models.staging_models.StgVRFundRankLog.objects" />
+          <option value="value_research._models.staging_models.StgVRExpenseRatio.objects" />
+          <option value="value_research._models.staging_models.StgVrStatsVariable.objects" />
+          <option value="value_research._models.staging_models.StgVRCompany.objects" />
+          <option value="value_research._models.staging_models.StgVRHoldings.objects" />
+          <option value="value_research._models.staging_models.StgVRSector.objects" />
+          <option value="value_research._models.staging_models.StgVRComposition.objects" />
+          <option value="value_research._models.staging_models.StgVRFundRatingsLog.objects" />
+          <option value="value_research._models.staging_models.StgVRFundReturnLog.objects" />
+          <option value="value_research._models.staging_models.StgVRAum.objects" />
+          <option value="value_research._models.staging_models.StgVrAmcAum.objects" />
+          <option value="value_research._models.staging_models.StgVrAMC.objects" />
+          <option value="value_research._models.staging_models.StgVrBenchmarkIndices.objects" />
+          <option value="value_research._models.staging_models.StgVrPortfolioTurnover.objects" />
+          <option value="value_research._models.staging_models.StgVRFundHoldingsSectorWiseImputedLatest.objects" />
+          <option value="value_research._models.bfdl_models.BfdlFundManager.objects" />
+          <option value="value_research._models.staging_models.StgVRFundManagerLatest.objects" />
+          <option value="value_research._models.bfdl_models.BfdlFundManagerPersonalDetails.objects" />
+          <option value="value_research._models.staging_models.StgVRPerson.objects" />
+          <option value="digio.models.KycTransactionDetails.obejcts" />
+          <option value="digio.models.KycTransactionDetails.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
