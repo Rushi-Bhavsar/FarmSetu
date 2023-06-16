@@ -123,3 +123,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+WEATHER_URL = "https://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/<weather_parameter>/date/<region>.txt"

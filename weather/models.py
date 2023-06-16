@@ -23,3 +23,10 @@ class WeatherData(models.Model):
     aut = models.FloatField(max_length=20, blank=True, null=True)
     ann = models.FloatField(max_length=20, blank=True, null=True)
 
+    @classmethod
+    def insert_multiple_records(cls, payload):
+        try:
+            insert_data = cls.objects.bulk_create(payload)
+        except Exception as e:
+            insert_data = 0
+        return insert_data
