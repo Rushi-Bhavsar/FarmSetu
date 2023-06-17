@@ -20,3 +20,7 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
+
+handler404 = views.handler404
+handler403 = views.handler403
+handler400 = views.handler400
