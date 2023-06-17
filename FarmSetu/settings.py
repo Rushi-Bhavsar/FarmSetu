@@ -151,7 +151,6 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': LOG_LEVEL,
-            'filters': ['weather_filter'],
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
