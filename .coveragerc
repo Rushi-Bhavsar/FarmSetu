@@ -1,0 +1,9 @@
+[run]
+omit=
+    *migrations*
+    *__init__.py
+    *models.py*
+    *tests*
+    *FarmSetu/*
+    *manage.py
+    *apps.py*
