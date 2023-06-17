@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -123,5 +124,65 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOG_LEVEL = "DEBUG"
+
+APP_LOG_FILE = os.path.join(BASE_DIR, 'FarmSetu', 'application_logs.log')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        "verbose": {
+            "format": "%(asctime)s.%(msecs)03d | %(thread)d | %(levelname)s | %(module)s | %(name)s | %(message)s",
+            "datefmt": '%Y-%m-%dT%H:%M:%S',
+        }
+    },
+
+    'handlers': {
+        'console': {
+            'level': LOG_LEVEL,
+            'filters': ['weather_filter'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+
+        'app_file': {
+            'level': LOG_LEVEL,
+            'filters': ['require_debug_true'],
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': APP_LOG_FILE,
+            'maxBytes': 16777216,
+            'formatter': 'verbose',
+            'backupCount': 200,
+        },
+    },
+
+    'loggers': {
+        'django.db.backends': {
+            'level': LOG_LEVEL,
+            'handlers': ['app_file'],
+         },
+
+        '': {
+            'handlers': ['app_file'],
+            'level': LOG_LEVEL,
+        },
+
+        'weather': {
+            'handlers': ['app_file'],
+            'level': LOG_LEVEL,
+        },
+    }
+}
 
 WEATHER_URL = "https://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/<weather_parameter>/date/<region>.txt"
