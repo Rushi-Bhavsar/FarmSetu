@@ -53,9 +53,13 @@ def scrap_region_data(region_urls):
 
 
 def process_scarp_data(resp, region, weather_param):
-    split_resp = resp.text.split("\n")[5:-1]
-    input_name = split_resp.pop(0).split()
     payload = []
+    try:
+        split_resp = resp.text.split("\n")[5:-1]
+        input_name = split_resp.pop(0).split()
+    except Exception as e:
+        split_resp = ''
+        input_name = []
 
     for line in split_resp:
         data = dict()
