@@ -3,6 +3,8 @@ from .models import WeatherData
 from .serializer import WeatherSerializer
 from rest_framework.response import Response
 
+from .utils.pagination_util import paginate_response
+
 
 class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = WeatherData.objects.all()
@@ -16,8 +18,10 @@ class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
         instance = self.get_queryset(**request.query_params)
         if instance:
             msg = "Record details fetched successfully."
-            serializer = self.get_serializer(instance, many=True)
-            data_content = {'code': 100, 'msg': msg, 'count': instance.count(), 'result': serializer.data}
+            resp_data = paginate_response(instance, request, self.serializer_class)
+            data_content = {'code': 100, 'msg': msg, 'total_count': resp_data.data['count'],
+                            'page_count': len(resp_data.data['results']), 'next': resp_data.data['next'],
+                            'previous': resp_data.data['previous'], 'result': resp_data.data['results']}
         else:
             msg = "No Data Present"
             data_content = {'code': 100, 'msg': msg, 'count': 0, 'result': []}
