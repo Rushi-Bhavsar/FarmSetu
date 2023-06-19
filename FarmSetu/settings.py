@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from django.db.models import Sum
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -161,7 +162,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': LOG_LEVEL,
-            'filters': ['require_debug_true'],
+            'filters': ['request_id', 'require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
@@ -201,3 +202,12 @@ REST_FRAMEWORK = {
 }
 
 WEATHER_URL = "https://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/<weather_parameter>/date/<region>.txt"
+
+ANNOTATE_COLUMN_MAPPING = {'jan': ('jan_sum', Sum('jan')), 'feb': ('feb_sum', Sum('feb')),
+                           'mar': ('mar_sum', Sum('mar')), 'apr': ('apr_sum', Sum('apr')),
+                           'may': ('may_sum', Sum('may')), 'jun': ('jun_sum', Sum('jun')),
+                           'jul': ('jul_sum', Sum('jul')), 'aug': ('aug_sum', Sum('aug')),
+                           'sep': ('sep_sum', Sum('sep')), 'oct': ('oct_sum', Sum('oct')),
+                           'nov': ('nov_sum', Sum('nov')), 'dec': ('dec_sum', Sum('dec')),
+                           'ann': ('ann_sum', Sum('ann')), 'aut': ('aut_sum', Sum('aut')),
+                           'spr': ('spr_sum', Sum('spr')), 'win': ('win_sum', Sum('win'))}

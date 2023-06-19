@@ -14,9 +14,15 @@ class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
     def create_query_param(self):
         filter_dict = dict()
         param = self.request.GET
-        filter_dict['region__in'] = param.getlist('region')
-        filter_dict['year__in'] = param.getlist('year')
-        filter_dict['weather_parameter__in'] = param.getlist('weather_parameter')
+        region = param.getlist('region')
+        year = param.getlist('year')
+        weather_param = param.getlist('weather_parameter')
+        if region:
+            filter_dict['region__in'] = param.getlist('region')
+        if year:
+            filter_dict['year__in'] = param.getlist('year')
+        if weather_param:
+            filter_dict['weather_parameter__in'] = param.getlist('weather_parameter')
         return filter_dict
 
     def get_queryset(self, *args, **kwargs):
@@ -46,8 +52,8 @@ class RegionParamData(views.APIView):
         :return: RestFramework Response.
         """
         query_dict = self.create_query_param()
-        model_list = ['region', 'ann', 'weather_parameter', 'year', 'aut', 'sum', 'spr']
-        da = WeatherData.objects.only(*model_list).filter(**query_dict).values('year', 'ann', 'aut', 'sum', 'spr')
+        model_list = ['region', 'weather_parameter', 'year', 'ann', 'aut', 'sum', 'spr']
+        da = WeatherData.objects.only(*model_list).filter(**query_dict).values(*model_list)
         data_context = {'code': 100, 'msg': 'Data Got', 'results': da}
         return Response(data=data_context, status=200)
 
@@ -71,11 +77,30 @@ class RegionParamData(views.APIView):
         return query_dict
 
 
+def process_query_data(query_data):
+        t_max = []
+        t_min = []
+        t_mean = []
+        for data in query_data:
+            weather_param = data.pop('weather_parameter')
+            if weather_param == 'Tmax':
+                t_max.append(data)
+            elif weather_param == 'Tmin':
+                t_min.append(data)
+            elif weather_param == 'Tmean':
+                t_mean.append(data)
+        if t_min and t_mean and t_max:
+            resp = {'Tmax': t_max, 'Tmin': t_min, 'Tmean': t_mean}
+        else:
+            resp = {}
+        return resp
+
+
 class RegionYearTemperature(views.APIView):
     def get(self, request):
         query_dict, only_fields = self.create_query_param()
         da = WeatherData.objects.only(*only_fields).filter(**query_dict).values(*only_fields)
-        resp = self.process_query_data(da)
+        resp = process_query_data(da)
         msg = 'Got Data' if resp else 'No Data Present'
         data_context = {'code': 100, 'msg': msg, 'results': resp}
         return Response(data=data_context, status=200)
@@ -94,20 +119,15 @@ class RegionYearTemperature(views.APIView):
                        'oct', 'nov', 'dec']
         return query_dict, only_fields
 
-    def process_query_data(self, query_data):
-            t_max = []
-            t_min = []
-            t_mean = []
-            for data in query_data:
-                weather_param = data.pop('weather_parameter')
-                if weather_param == 'Tmax':
-                    t_max.append(data)
-                elif weather_param == 'Tmin':
-                    t_min.append(data)
-                elif weather_param == 'Tmean':
-                    t_mean.append(data)
-            if t_min and t_mean and t_max:
-                resp = {'Tmax': t_max, 'Tmin': t_min, 'Tmean': t_mean}
-            else:
-                resp = {}
-            return resp
+
+def process_region_query_data(region_details):
+    resp = {}
+    for i in region_details:
+        years = [int(i) for i in i.years.split(',')]
+        key = i.region
+        data = {i.weather_parameter: years}
+        if key in resp.keys():
+            resp[key].append(data)
+        else:
+            resp[key] = [data]
+    return resp
