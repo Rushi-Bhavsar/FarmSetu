@@ -8,6 +8,7 @@ charset-normalizer==3.1.0
 coverage==7.2.7
 decorator==5.1.1
 Django==4.2.2
+django-log-request-id==2.1.0
 djangorestframework==3.14.0
 exceptiongroup==1.1.1
 executing==1.2.0
