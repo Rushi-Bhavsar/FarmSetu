@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'log_request_id.middleware.RequestIDMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -145,10 +146,14 @@ LOGGING = {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
+        "request_id": {
+            "()": "log_request_id.filters.RequestIDFilter"
+        }
     },
     'formatters': {
         "verbose": {
-            "format": "%(asctime)s.%(msecs)03d | %(thread)d | %(levelname)s | %(module)s | %(name)s | %(message)s",
+            "format": "%(asctime)s.%(msecs)03d | %(thread)d | %(levelname)s | %(module)s | %(name)s | %(request_id)s "
+                      "| %(message)s",
             "datefmt": '%Y-%m-%dT%H:%M:%S',
         }
     },
@@ -156,13 +161,14 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': LOG_LEVEL,
+            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
 
         'app_file': {
             'level': LOG_LEVEL,
-            'filters': ['require_debug_true'],
+            'filters': ['request_id'],
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': APP_LOG_FILE,
             'maxBytes': 16777216,
@@ -174,7 +180,7 @@ LOGGING = {
     'loggers': {
         'django.db.backends': {
             'level': LOG_LEVEL,
-            'handlers': ['app_file'],
+            'handlers': ['console'],
          },
 
         '': {
