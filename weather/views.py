@@ -5,6 +5,8 @@ from .serializer import WeatherSerializer
 from rest_framework.response import Response
 
 from .utils.pagination_util import paginate_response
+from django.conf import settings
+ANNOTATE_COLUMN_MAPPING = settings.ANNOTATE_COLUMN_MAPPING
 
 
 class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
@@ -131,3 +133,96 @@ def process_region_query_data(region_details):
         else:
             resp[key] = [data]
     return resp
+
+
+class GetRegionInfo(views.APIView):
+    def get(self, request):
+        query_string = "SELECT id, region, weather_parameter, COUNT(year) as no_years, " \
+                       "GROUP_CONCAT(year) as years FROM weather_weatherdata GROUP BY region, weather_parameter;"
+        region_details = WeatherData.objects.raw(query_string)
+        resp_data = process_region_query_data(region_details)
+        msg = 'Got Data' if resp_data else 'No Data Present'
+        data_context = {'code': 100, 'msg': msg, 'results': resp_data}
+        return Response(data=data_context, status=200)
+
+
+def process_data(data, pop_key):
+    data_dict = {}
+    for i in data:
+        key = i.pop(pop_key)
+        if key in data_dict.keys():
+            data_dict[key].append(i)
+        else:
+            data_dict[key] = [i]
+    return data_dict
+
+
+class GetData(views.APIView):
+    def get(self, request):
+        a = dict()
+        for month in self.request.query_params.getlist('month'):
+            key, value = ANNOTATE_COLUMN_MAPPING[month]
+            a[key] = value
+        if not a:
+            for k, v in ANNOTATE_COLUMN_MAPPING.items():
+                key, value = v
+                a[key] = value
+        f = dict()
+        w_p = self.request.query_params.getlist('weather_param')
+        if w_p:
+            f['weather_parameter__in'] = w_p
+        data = WeatherData.objects.filter(**f).values('region', 'weather_parameter').annotate(**a)
+        resp_data = process_data(data, 'weather_parameter')
+        msg = 'Data Got' if resp_data else 'No data'
+        data_context = {'code': 100, 'msg': msg, 'results': resp_data}
+        return Response(data=data_context, status=200)
+
+
+class Get2data(views.APIView):
+    def get(self, request):
+        a = dict()
+        for month in self.request.query_params.getlist('month'):
+            key, value = ANNOTATE_COLUMN_MAPPING[month]
+            a[key] = value
+        if not a:
+            for k, v in ANNOTATE_COLUMN_MAPPING.items():
+                key, value = v
+                a[key] = value
+        f = dict()
+        w_p = self.request.query_params.getlist('weather_param')
+        if w_p:
+            f['weather_parameter__in'] = w_p
+        data = WeatherData.objects.filter(**f).values('weather_parameter', 'year').annotate(**a)
+        resp_data = process_data(data, 'weather_parameter')
+        msg = 'Data Got' if resp_data else 'No data'
+        data_context = {'code': 100, 'msg': msg, 'results': resp_data}
+        return Response(data=data_context, status=200)
+
+
+class Fetchdata(views.APIView):
+    def get(self, request):
+        a = dict()
+        for month in self.request.query_params.getlist('month'):
+            key, value = ANNOTATE_COLUMN_MAPPING[month]
+            a[key] = value
+        if not a:
+            for k, v in ANNOTATE_COLUMN_MAPPING.items():
+                key, value = v
+                a[key] = value
+        f = dict()
+        w_p = self.request.query_params.getlist('weather_param')
+        if not w_p:
+            msg = 'One weather_parameter is needed.'
+            data_context = {'code': 101, 'msg': msg, 'results': []}
+            return Response(data=data_context, status=400)
+        if len(w_p) == 1:
+            f['weather_parameter__in'] = w_p
+        else:
+            msg = 'Invalid input for weather_parameter. Only one weather_parameter is allowed.'
+            data_context = {'code': 101, 'msg': msg, 'results': []}
+            return Response(data=data_context, status=400)
+        data = WeatherData.objects.filter(**f).values('region', 'year').annotate(**a)
+        resp_data = process_data(data, 'region')
+        msg = 'Data Got' if resp_data else 'No data'
+        data_context = {'code': 100, 'msg': msg, 'results': resp_data}
+        return Response(data=data_context, status=200)
