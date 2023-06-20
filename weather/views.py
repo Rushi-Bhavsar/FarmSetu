@@ -169,7 +169,7 @@ def get_aggregate_filter(calculate, months):
         for k, v in aggregate_func.items():
             key, value = v
             annotate_param[key] = value
-    return aggregate_dict[calculate]
+    return annotate_param
 
 
 def get_query_filter(weather_param):
