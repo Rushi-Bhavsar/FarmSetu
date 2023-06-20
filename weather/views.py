@@ -5,7 +5,9 @@ from .serializer import WeatherSerializer
 from rest_framework.response import Response
 
 from .utils.pagination_util import paginate_response
+from .utils.ValidateApiRequest import RequestValidate
 from django.conf import settings
+from django.utils.decorators import method_decorator
 ANNOTATE_SUM_COLUMN_MAPPING = settings.ANNOTATE_SUM_COLUMN_MAPPING
 ANNOTATE_AVG_COLUMN_MAPPING = settings.ANNOTATE_AVG_COLUMN_MAPPING
 
@@ -179,7 +181,9 @@ def get_query_filter(weather_param):
     return query_param
 
 
-class GetData(views.APIView):
+@method_decorator(RequestValidate, name='get')
+class RegionWeatherParameter(views.APIView):
+
     def get(self, request):
         calculate = self.request.query_params.get('calculate')
         months = self.request.query_params.getlist('month')
@@ -193,7 +197,8 @@ class GetData(views.APIView):
         return Response(data=data_context, status=200)
 
 
-class Get2data(views.APIView):
+@method_decorator(RequestValidate, name='get')
+class WeatherParameterYear(views.APIView):
     def get(self, request):
         calculate = self.request.query_params.get('calculate')
         months = self.request.query_params.getlist('month')
@@ -207,7 +212,8 @@ class Get2data(views.APIView):
         return Response(data=data_context, status=200)
 
 
-class Fetchdata(views.APIView):
+@method_decorator(RequestValidate, name='get')
+class RegionYear(views.APIView):
     def get(self, request):
         calculate = self.request.query_params.get('calculate')
         months = self.request.query_params.getlist('month')
