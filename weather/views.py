@@ -124,7 +124,7 @@ class GetValue(views.APIView):
             msg = f"Max Value for {weather_param}"
         elif calculate == 'min':
             data = WeatherData.objects.filter(**f).exclude(year=2023).values('region', 'year'). \
-                annotate(Min_value=Min(field)).order_by('-Min_value')[0]
+                annotate(Min_value=Min(field)).order_by('Min_value')[0]
             msg = f"Min Value for {weather_param}"
         else:
             data = {}
