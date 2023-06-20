@@ -1,6 +1,6 @@
 import logging
 from django.core.management.base import BaseCommand
-from weather.utils.get_weather_data import get_region_wise_data
+from weather.utils.get_weather_data import get_region_wise_data, WeatherData
 
 
 class Command(BaseCommand):
@@ -11,6 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if kwargs['load_data'] == 'load':
+            WeatherData.objects.all().delete()
             get_region_wise_data()
             self.stdout.write(f"Data Loading completed.")
         else:
