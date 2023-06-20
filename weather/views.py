@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from .utils.pagination_util import paginate_response
 from django.conf import settings
-ANNOTATE_COLUMN_MAPPING = settings.ANNOTATE_COLUMN_MAPPING
+ANNOTATE_SUM_COLUMN_MAPPING = settings.ANNOTATE_SUM_COLUMN_MAPPING
+ANNOTATE_AVG_COLUMN_MAPPING = settings.ANNOTATE_AVG_COLUMN_MAPPING
 
 
 class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
@@ -157,21 +158,35 @@ def process_data(data, pop_key):
     return data_dict
 
 
+def get_aggregate_filter(calculate, months):
+    aggregate_dict = {'sum': ANNOTATE_SUM_COLUMN_MAPPING, 'avg': ANNOTATE_AVG_COLUMN_MAPPING}
+    aggregate_func = aggregate_dict[calculate]
+    annotate_param = dict()
+    for month in months:
+        key, value = aggregate_func[month]
+        annotate_param[key] = value
+    if not annotate_param:
+        for k, v in aggregate_func.items():
+            key, value = v
+            annotate_param[key] = value
+    return aggregate_dict[calculate]
+
+
+def get_query_filter(weather_param):
+    query_param = dict()
+    if weather_param:
+        query_param['weather_parameter__in'] = weather_param
+    return query_param
+
+
 class GetData(views.APIView):
     def get(self, request):
-        a = dict()
-        for month in self.request.query_params.getlist('month'):
-            key, value = ANNOTATE_COLUMN_MAPPING[month]
-            a[key] = value
-        if not a:
-            for k, v in ANNOTATE_COLUMN_MAPPING.items():
-                key, value = v
-                a[key] = value
-        f = dict()
-        w_p = self.request.query_params.getlist('weather_param')
-        if w_p:
-            f['weather_parameter__in'] = w_p
-        data = WeatherData.objects.filter(**f).values('region', 'weather_parameter').annotate(**a)
+        calculate = self.request.query_params.get('calculate')
+        months = self.request.query_params.getlist('month')
+        weather_param = self.request.query_params.getlist('weather_param')
+        annotate_param = get_aggregate_filter(calculate, months)
+        query_param = get_query_filter(weather_param)
+        data = WeatherData.objects.filter(**query_param).values('region', 'weather_parameter').annotate(**annotate_param)
         resp_data = process_data(data, 'weather_parameter')
         msg = 'Data Got' if resp_data else 'No data'
         data_context = {'code': 100, 'msg': msg, 'results': resp_data}
@@ -180,19 +195,12 @@ class GetData(views.APIView):
 
 class Get2data(views.APIView):
     def get(self, request):
-        a = dict()
-        for month in self.request.query_params.getlist('month'):
-            key, value = ANNOTATE_COLUMN_MAPPING[month]
-            a[key] = value
-        if not a:
-            for k, v in ANNOTATE_COLUMN_MAPPING.items():
-                key, value = v
-                a[key] = value
-        f = dict()
-        w_p = self.request.query_params.getlist('weather_param')
-        if w_p:
-            f['weather_parameter__in'] = w_p
-        data = WeatherData.objects.filter(**f).values('weather_parameter', 'year').annotate(**a)
+        calculate = self.request.query_params.get('calculate')
+        months = self.request.query_params.getlist('month')
+        weather_param = self.request.query_params.getlist('weather_param')
+        annotate_param = get_aggregate_filter(calculate, months)
+        query_param = get_query_filter(weather_param)
+        data = WeatherData.objects.filter(**query_param).values('weather_parameter', 'year').annotate(**annotate_param)
         resp_data = process_data(data, 'weather_parameter')
         msg = 'Data Got' if resp_data else 'No data'
         data_context = {'code': 100, 'msg': msg, 'results': resp_data}
@@ -201,14 +209,9 @@ class Get2data(views.APIView):
 
 class Fetchdata(views.APIView):
     def get(self, request):
-        a = dict()
-        for month in self.request.query_params.getlist('month'):
-            key, value = ANNOTATE_COLUMN_MAPPING[month]
-            a[key] = value
-        if not a:
-            for k, v in ANNOTATE_COLUMN_MAPPING.items():
-                key, value = v
-                a[key] = value
+        calculate = self.request.query_params.get('calculate')
+        months = self.request.query_params.getlist('month')
+        annotate_param = get_aggregate_filter(calculate, months)
         f = dict()
         w_p = self.request.query_params.getlist('weather_param')
         if not w_p:
@@ -221,7 +224,7 @@ class Fetchdata(views.APIView):
             msg = 'Invalid input for weather_parameter. Only one weather_parameter is allowed.'
             data_context = {'code': 101, 'msg': msg, 'results': []}
             return Response(data=data_context, status=400)
-        data = WeatherData.objects.filter(**f).values('region', 'year').annotate(**a)
+        data = WeatherData.objects.filter(**f).values('region', 'year').annotate(**annotate_param)
         resp_data = process_data(data, 'region')
         msg = 'Data Got' if resp_data else 'No data'
         data_context = {'code': 100, 'msg': msg, 'results': resp_data}

@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from django.db.models import Sum
+from django.db.models import Sum, Avg
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -203,11 +203,20 @@ REST_FRAMEWORK = {
 
 WEATHER_URL = "https://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/<weather_parameter>/date/<region>.txt"
 
-ANNOTATE_COLUMN_MAPPING = {'jan': ('jan_sum', Sum('jan')), 'feb': ('feb_sum', Sum('feb')),
-                           'mar': ('mar_sum', Sum('mar')), 'apr': ('apr_sum', Sum('apr')),
-                           'may': ('may_sum', Sum('may')), 'jun': ('jun_sum', Sum('jun')),
-                           'jul': ('jul_sum', Sum('jul')), 'aug': ('aug_sum', Sum('aug')),
-                           'sep': ('sep_sum', Sum('sep')), 'oct': ('oct_sum', Sum('oct')),
-                           'nov': ('nov_sum', Sum('nov')), 'dec': ('dec_sum', Sum('dec')),
-                           'ann': ('ann_sum', Sum('ann')), 'aut': ('aut_sum', Sum('aut')),
-                           'spr': ('spr_sum', Sum('spr')), 'win': ('win_sum', Sum('win'))}
+ANNOTATE_SUM_COLUMN_MAPPING = {'jan': ('jan_sum', Sum('jan')), 'feb': ('feb_sum', Sum('feb')),
+                               'mar': ('mar_sum', Sum('mar')), 'apr': ('apr_sum', Sum('apr')),
+                               'may': ('may_sum', Sum('may')), 'jun': ('jun_sum', Sum('jun')),
+                               'jul': ('jul_sum', Sum('jul')), 'aug': ('aug_sum', Sum('aug')),
+                               'sep': ('sep_sum', Sum('sep')), 'oct': ('oct_sum', Sum('oct')),
+                               'nov': ('nov_sum', Sum('nov')), 'dec': ('dec_sum', Sum('dec')),
+                               'ann': ('ann_sum', Sum('ann')), 'aut': ('aut_sum', Sum('aut')),
+                               'spr': ('spr_sum', Sum('spr')), 'win': ('win_sum', Sum('win'))}
+
+ANNOTATE_AVG_COLUMN_MAPPING = {'jan': ('jan_avg', Avg('jan')), 'feb': ('feb_avg', Avg('feb')),
+                               'mar': ('mar_avg', Avg('mar')), 'apr': ('apr_avg', Avg('apr')),
+                               'may': ('may_avg', Avg('may')), 'jun': ('jun_avg', Avg('jun')),
+                               'jul': ('jul_avg', Avg('jul')), 'aug': ('aug_avg', Avg('aug')),
+                               'sep': ('sep_avg', Avg('sep')), 'oct': ('oct_avg', Avg('oct')),
+                               'nov': ('nov_avg', Avg('nov')), 'dec': ('dec_avg', Avg('dec')),
+                               'ann': ('ann_avg', Avg('ann')), 'aut': ('aut_avg', Avg('aut')),
+                               'spr': ('spr_avg', Avg('spr')), 'win': ('win_avg', Avg('win'))}
