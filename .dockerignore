@@ -1,0 +1,4 @@
+db.sqlite3
+Documentation/
+.pytest_cache
+FarmSetu/application_logs.log
