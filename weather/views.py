@@ -70,13 +70,13 @@ class RegionParamData(views.APIView):
         :return: Query Param.
         """
         region = self.request.query_params.get('region')
-        weather_param = self.request.query_params.get('weather_param')
+        weather_param = self.request.query_params.getlist('weather_param')
         year = self.request.query_params.get('year')
         lower_range_year = self.request.query_params.get('lower_range_year')
         upper_range_year = self.request.query_params.get('upper_range_year')
         lower_range_year = int(lower_range_year) if lower_range_year and lower_range_year.isdigit() else None
         upper_range_year = int(upper_range_year) if upper_range_year and upper_range_year.isdigit() else None
-        query_dict = {'region': region, 'weather_parameter': weather_param}
+        query_dict = {'region': region, 'weather_parameter__in': weather_param}
         if year:
             query_dict['year'] = year
         elif lower_range_year and upper_range_year:
