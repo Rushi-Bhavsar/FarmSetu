@@ -5,9 +5,10 @@ from .serializer import WeatherSerializer
 from rest_framework.response import Response
 
 from .utils.pagination_util import paginate_response
-from .utils.ValidateApiRequest import RequestValidate
+from .utils.decorator_utils import RequestValidate, CatchException
 from django.conf import settings
 from django.utils.decorators import method_decorator
+from django.db.models import Min, Max
 ANNOTATE_SUM_COLUMN_MAPPING = settings.ANNOTATE_SUM_COLUMN_MAPPING
 ANNOTATE_AVG_COLUMN_MAPPING = settings.ANNOTATE_AVG_COLUMN_MAPPING
 
@@ -48,6 +49,7 @@ class WeatherViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(data=data_content, status=200)
 
 
+@method_decorator(CatchException, name='get')
 class RegionParamData(views.APIView):
 
     def get(self, request) -> Response:
@@ -101,28 +103,34 @@ def process_query_data(query_data):
         return resp
 
 
-class RegionYearTemperature(views.APIView):
+@method_decorator(CatchException, name='get')
+class GetValue(views.APIView):
     def get(self, request):
-        query_dict, only_fields = self.create_query_param()
-        da = WeatherData.objects.only(*only_fields).filter(**query_dict).values(*only_fields)
-        resp = process_query_data(da)
-        msg = 'Got Data' if resp else 'No Data Present'
-        data_context = {'code': 100, 'msg': msg, 'results': resp}
-        return Response(data=data_context, status=200)
 
-    def create_query_param(self):
-        region = self.request.query_params.get('region')
-        year = self.request.query_params.getlist('year')
-        # condition_check = {True: lambda x: (int(*x), 'year'), False: lambda x: ([int(i) for i in x], 'year__in')}
-        # year, filter_field = condition_check[len(year) == 1](year)
-        query_dict = {'region': region, 'weather_parameter__in': ['Tmax', 'Tmin', 'Tmean']}
-        if len(year) == 1:
-            query_dict['year'] = int(*year)
-        elif len(year) > 1:
-            query_dict['year__in'] = [int(i) for i in year]
-        only_fields = ['weather_parameter', 'year', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep',
-                       'oct', 'nov', 'dec']
-        return query_dict, only_fields
+        calculate = self.request.query_params.get('calculate')
+        weather_param = self.request.query_params.get('weather_param')
+        field = self.request.query_params.get('field')
+        if not field:
+            data_context = {'code': 100, 'msg': 'field can not be empty', 'results': []}
+            return Response(data=data_context, status=200)
+
+        f = {"weather_parameter": weather_param}
+        if not calculate:
+            data_context = {'code': 100, 'msg': 'calculate function name should be present', 'results': []}
+            return Response(data=data_context, status=200)
+        if calculate == 'max':
+            data = WeatherData.objects.filter(**f).exclude(year=2023).values('region', 'year').\
+                annotate(Max_value=Max(field)).order_by('-Max_value')[0]
+            msg = f"Max Value for {weather_param}"
+        elif calculate == 'min':
+            data = WeatherData.objects.filter(**f).exclude(year=2023).values('region', 'year'). \
+                annotate(Min_value=Min(field)).order_by('-Min_value')[0]
+            msg = f"Min Value for {weather_param}"
+        else:
+            data = {}
+            msg = "Invalid Operation"
+        data_context = {'code': 100, 'msg': msg, 'results': data}
+        return Response(data=data_context, status=200)
 
 
 def process_region_query_data(region_details):
@@ -138,6 +146,7 @@ def process_region_query_data(region_details):
     return resp
 
 
+@method_decorator(CatchException, name='get')
 class GetRegionInfo(views.APIView):
     def get(self, request):
         query_string = "SELECT id, region, weather_parameter, COUNT(year) as no_years, " \
@@ -181,6 +190,7 @@ def get_query_filter(weather_param):
     return query_param
 
 
+@method_decorator(CatchException, name='get')
 @method_decorator(RequestValidate, name='get')
 class RegionWeatherParameter(views.APIView):
 
@@ -197,6 +207,7 @@ class RegionWeatherParameter(views.APIView):
         return Response(data=data_context, status=200)
 
 
+@method_decorator(CatchException, name='get')
 @method_decorator(RequestValidate, name='get')
 class WeatherParameterYear(views.APIView):
     def get(self, request):
@@ -212,6 +223,16 @@ class WeatherParameterYear(views.APIView):
         return Response(data=data_context, status=200)
 
 
+def process_dataset(data, pop_key):
+    data_dict = {}
+    for i in data:
+        key = i.pop(pop_key)
+        if key not in data_dict.keys():
+            data_dict[key] = i
+    return data_dict
+
+
+@method_decorator(CatchException, name='get')
 @method_decorator(RequestValidate, name='get')
 class RegionYear(views.APIView):
     def get(self, request):
@@ -230,8 +251,8 @@ class RegionYear(views.APIView):
             msg = 'Invalid input for weather_parameter. Only one weather_parameter is allowed.'
             data_context = {'code': 101, 'msg': msg, 'results': []}
             return Response(data=data_context, status=400)
-        data = WeatherData.objects.filter(**f).values('region', 'year').annotate(**annotate_param)
-        resp_data = process_data(data, 'region')
+        data = WeatherData.objects.filter(**f).values('region').annotate(**annotate_param)
+        resp_data = process_dataset(data, 'region')
         msg = 'Data Got' if resp_data else 'No data'
         data_context = {'code': 100, 'msg': msg, 'results': resp_data}
         return Response(data=data_context, status=200)
